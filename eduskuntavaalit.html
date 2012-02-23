@@ -80,6 +80,7 @@ d3.csv("eduskuntavaalit_1945-1995.csv", function(csv) {
       .attr("dy", "2em")
       .style("stroke", "transparent")
       .style("fill", "black")
+      .style("opacity",0)
       .text(function(d) { return d.y; });
 
   // Add a label per date.
@@ -115,12 +116,20 @@ d3.csv("eduskuntavaalit_1945-1995.csv", function(csv) {
 /** Returns an event handler for fading a given chord group. */
  function fade(opacity) {
    return function(g, i) {
-     svg.selectAll("g.party")
-         .filter(function(d) {
-           return d!=g;
-         })
-       .transition()
-         .style("opacity", opacity);
+     var parties =  svg.selectAll("g.party")
+     // fade out/in others
+	 parties
+	 	.filter(function(d) { return d!=g;})
+	 	.transition()
+        	.style("opacity", opacity);
+         
+     // fade in the labels on this
+     parties
+     	.filter(function(d) { return d==g;})
+     	.selectAll("text")
+     	.transition()
+     		.style("opacity", 1-opacity);
+    	
    };
  }
 
