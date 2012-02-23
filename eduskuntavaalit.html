@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Eduskuntavaalit</title>
+    <script type="text/javascript" src="lib/d3.v2.js"></script>
+    <style type="text/css">
+
+svg {
+  width: 960px;
+  height: 500px;
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var p = [20, 50, 30, 20],
+    w = 960 - p[1] - p[3],
+    h = 500 - p[0] - p[2],
+    x = d3.scale.ordinal().rangeRoundBands([0, w]),
+    y = d3.scale.linear().range([0, h]),
+    z = d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
+    parse = d3.time.format("%Y").parse,
+    format = d3.time.format("%Y");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", w)
+    .attr("height", h)
+  .append("g")
+    .attr("transform", "translate(" + p[3] + "," + (h + p[0]) + ")");
+
+d3.csv("eduskuntavaalit_1945-1995.csv", function(csv) {
+
+  // Transpose the data into layers by party.
+  var parties = d3.layout.stack().order("default")(["RKP", "SMP", "SDP", "KOK", "KESK", "VAS" ].map(
+  	function(party) {    	
+    	var map = csv.map(function(d) {
+    		console.log("d",d);
+      		return {x: parse(d["vuosi"]), y: +d[party]};
+    	});
+    	console.log(party,map);
+    	return map;
+  	})
+  );
+
+  // Compute the x-domain (by date) and y-domain (by top).
+  x.domain(parties[0].map(function(d) { return d.x; }));
+  y.domain([0, d3.max(parties[parties.length - 1], function(d) { return d.y0 + d.y; })]);
+
+  // Add a group for each party.
+  var party = svg.selectAll("g.party")
+      .data(parties)
+    .enter().append("g")
+      .attr("class", "party")
+    .on("mouseover", fade(.3))
+    .on("mouseout", fade(1))
+      .style("fill", function(d, i) { return z(i); })
+      .style("stroke", function(d, i) { return d3.rgb(z(i)).darker(); });
+
+  // Add a rect for each date.
+  var rect = party.selectAll("rect")
+      .data(Object)
+    .enter().append("rect")
+      .attr("x", function(d) { return x(d.x); })
+      .attr("y", function(d) { return -y(d.y0) - y(d.y); })
+      .attr("height", function(d) { return y(d.y); })
+      .attr("width", x.rangeBand());
+      
+
+  var text = party.selectAll("text")
+	  .data(Object)
+   	 .enter().append("text")
+      .attr("class", "value")
+      .attr("x", function(d) { return x(d.x); })
+      .attr("y", function(d) { return -y(d.y0) - y(d.y); })
+      .attr("dx", "2em")
+      .attr("dy", "2em")
+      .style("stroke", "transparent")
+      .style("fill", "black")
+      .text(function(d) { return d.y; });
+
+  // Add a label per date.
+  var label = svg.selectAll("text")
+      .data(x.domain())
+    .enter().append("text")
+      .attr("x", function(d) { return x(d) + x.rangeBand() / 2; })
+      .attr("y", 6)
+      .attr("text-anchor", "middle")
+      .attr("dy", ".71em")
+      .text(format);
+
+  // Add y-axis rules.
+  var rule = svg.selectAll("g.rule")
+      .data(y.ticks(5))
+      .enter().append("g")
+      .attr("class", "rule")
+      .attr("transform", function(d) { return "translate(0," + -y(d) + ")"; });
+
+	/*
+	rule.append("line")
+      .attr("x2", w)
+      .style("stroke", function(d) { return d ? "#fff" : "#000"; })
+      .style("stroke-opacity", function(d) { return d ? .7 : null; });
+	*/
+
+  rule.append("text")
+      .attr("x", w + 6)
+      .attr("dy", ".35em")
+      .text(d3.format(",d"));
+});
+
+/** Returns an event handler for fading a given chord group. */
+ function fade(opacity) {
+   return function(g, i) {
+     svg.selectAll("g.party")
+         .filter(function(d) {
+           return d!=g;
+         })
+       .transition()
+         .style("opacity", opacity);
+   };
+ }
+
+    </script>
+  </body>
+</html>
