@@ -84,7 +84,7 @@ d3.csv("eduskuntavaalit_1945-1995.csv", function(csv) {
       .text(function(d) { return d.y; });
 
   // Add a label per date.
-  var label = svg.selectAll("text")
+  var label = svg.selectAll("text.label")
       .data(x.domain())
     .enter().append("text")
       .attr("x", function(d) { return x(d) + x.rangeBand() / 2; })
