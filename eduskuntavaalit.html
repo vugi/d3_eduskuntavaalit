@@ -32,19 +32,25 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + p[3] + "," + (h + p[0]) + ")");
 
-d3.csv("eduskuntavaalit_1945-1995.csv", function(csv) {
+d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 
-  // Transpose the data into layers by party.
-  var parties = d3.layout.stack().order("default")(["RKP", "SMP", "SDP", "KOK", "KESK", "VAS" ].map(
-  	function(party) {    	
-    	var map = csv.map(function(d) {
-    		console.log("d",d);
-      		return {x: parse(d["vuosi"]), y: +d[party]};
-    	});
-    	console.log(party,map);
-    	return map;
-  	})
+  // Convert the data into layers by party.  
+  var parties = d3.layout.stack().order("default")(
+  		csv.map(function(d) {
+    		//console.log("data",d);
+    		var arr = [];
+    		for (year in d) {
+        		if (d.hasOwnProperty(year) && year != "puolue"){
+        			//console.log(year,d[year]);
+    				arr.push({x: parse(year), y: +d[year]});
+        		}
+    		}
+    		//console.log("arr",arr)
+      		return arr;
+    	})
   );
+  
+  console.log("parties",parties);
 
   // Compute the x-domain (by date) and y-domain (by top).
   x.domain(parties[0].map(function(d) { return d.x; }));
