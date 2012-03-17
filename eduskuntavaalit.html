@@ -4,9 +4,24 @@
     <title>Eduskuntavaalit</title>
     <script type="text/javascript" src="lib/d3.v2.js"></script>
     <style type="text/css">
+    
+    body {
+    	background-color: #eee;
+    	}
+    
+    h1 {
+    	color: #333;
+    	font-family: 'Helvetica Neue';
+    	font-size: 1.5em;
+    	letter-spacing: -1px;
+    	text-rendering: optimizelegibility;
+    	padding-left: 20px;
+    	padding-bottom: 0;
+    	margin-bottom: 0;
+    }
 
 svg {
-  width: 960px;
+  width: 1200px;
   height: 500px;
   font: 10px sans-serif;
   shape-rendering: crispEdges;
@@ -15,14 +30,15 @@ svg {
     </style>
   </head>
   <body>
+  	<h1>Finnish parliament elections 1945 - 2011</h1> 
     <script type="text/javascript">
 
 var p = [20, 50, 30, 20],
-    w = 960 - p[1] - p[3],
+    w = 1200 - p[1] - p[3],
     h = 500 - p[0] - p[2],
     x = d3.scale.ordinal().rangeRoundBands([0, w]),
     y = d3.scale.linear().range([0, h]),
-    z = d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
+    z = d3.scale.category20() //d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
     parse = d3.time.format("%Y").parse,
     format = d3.time.format("%Y");
 
@@ -32,17 +48,27 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + p[3] + "," + (h + p[0]) + ")");
 
+var partyNames = [];
+var partyColors = [];
+
 d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 
   // Convert the data into layers by party.  
-  var parties = d3.layout.stack().order("default")(
+  var parties = d3.layout.stack().order("default").offset("zero")(
   		csv.map(function(d) {
     		//console.log("data",d);
     		var arr = [];
     		for (year in d) {
-        		if (d.hasOwnProperty(year) && year != "puolue"){
-        			//console.log(year,d[year]);
-    				arr.push({x: parse(year), y: +d[year]});
+        		if (d.hasOwnProperty(year)){
+        			var val = d[year];
+        		    //console.log(year,d[year]);
+        			if(year == "puolue"){
+        				partyNames.push(val);
+        			} else if(year == "color"){
+        				partyColors.push(val);
+        			} else {
+    					arr.push({x: parse(year), y: +val});
+    				}
         		}
     		}
     		//console.log("arr",arr)
@@ -51,6 +77,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   );
   
   console.log("parties",parties);
+  console.log("partyColors",partyColors);
 
   // Compute the x-domain (by date) and y-domain (by top).
   x.domain(parties[0].map(function(d) { return d.x; }));
@@ -63,8 +90,9 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .attr("class", "party")
     .on("mouseover", fade(.3))
     .on("mouseout", fade(1))
-      .style("fill", function(d, i) { return z(i); })
-      .style("stroke", function(d, i) { return d3.rgb(z(i)).darker(); });
+    .on("mousemove", movePartyname())
+      .style("fill", function(d, i) { return partyColors[i]; })
+      .style("stroke", function(d, i) { return d3.rgb(partyColors[i]).darker(); });
 
   // Add a rect for each date.
   var rect = party.selectAll("rect")
@@ -75,19 +103,19 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .attr("height", function(d) { return y(d.y); })
       .attr("width", x.rangeBand());
       
-
+  // Add value texts (hidden by default)
   var text = party.selectAll("text")
 	  .data(Object)
    	 .enter().append("text")
       .attr("class", "value")
       .attr("x", function(d) { return x(d.x); })
       .attr("y", function(d) { return -y(d.y0) - y(d.y); })
-      .attr("dx", "2em")
+      .attr("dx", "1.6em")
       .attr("dy", "2em")
       .style("stroke", "transparent")
       .style("fill", "black")
       .style("opacity",0)
-      .text(function(d) { return d.y; });
+      .text(function(d) { return d.y ? d.y + "%" : ""; });
 
   // Add a label per date.
   var label = svg.selectAll("text.label")
@@ -117,11 +145,35 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .attr("x", w + 6)
       .attr("dy", ".35em")
       .text(d3.format(",d"));
+      
+  var tooltip = svg.append("g")
+  	.attr("id","tooltip")
+    .attr("transform", "translate(0,0)")
+    .attr("opacity",0);
+  
+  tooltip.append("rect")
+    	.attr("y", 0)
+    	.attr("x", 0)
+    	.attr("height",30)
+    	.attr("width",90)
+    	.style("fill","black")
+    	
+  tooltip.append("path")
+  		.attr("d","M 45 -10 l 10 10 l -20 0 l 10 -10")
+  		.style("fill","black");
+    	
+  tooltip.append("text")
+  		.attr("y", 20)
+    	.attr("x", 10)
+    	.attr("font-size", 15)
+    	.style("fill","white")
+    	.text("")
 });
 
 /** Returns an event handler for fading a given chord group. */
  function fade(opacity) {
    return function(g, i) {
+   
      var parties =  svg.selectAll("g.party")
      // fade out/in others
 	 parties
@@ -134,10 +186,37 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
      	.filter(function(d) { return d==g;})
      	.selectAll("text")
      	.transition()
+     		.delay(200)
      		.style("opacity", 1-opacity);
+     		
+     // Show or hide the tooltip
+     svg.select("#tooltip").attr("opacity", 1-opacity);
     	
    };
  }
+
+function showPartyname(){
+	return function(g, i) {
+		
+	}
+}
+
+function movePartyname(){
+	return function(g, i) {
+		//console.log(g,i);
+		var evt = d3.event;
+		//console.log(evt,evt.clientX,evt.x,evt.clientY,evt.y);
+		//console.log(d3.svg.mouse(svg));
+		var transform = "translate(" + (evt.x-70) + "," + (evt.y-h-40) + ")";
+		//console.log(transform);
+		svg.select("#tooltip")
+			.attr("transform", transform)
+			.select("text")
+				.text(partyNames[i]);
+		
+	    //console.log(partyNames[i]);
+	}
+}
 
     </script>
   </body>
