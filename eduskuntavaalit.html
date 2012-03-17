@@ -24,7 +24,14 @@ svg {
   width: 1200px;
   height: 500px;
   font: 10px sans-serif;
-  shape-rendering: crispEdges;
+  /*shape-rendering: crispEdges;*/
+}
+
+path {
+	stroke: none;
+	stroke-width: 2;
+	fill: none;
+	fill-opacity:1;
 }
 
     </style>
@@ -36,7 +43,7 @@ svg {
 var p = [20, 50, 30, 20],
     w = 1200 - p[1] - p[3],
     h = 500 - p[0] - p[2],
-    x = d3.scale.ordinal().rangeRoundBands([0, w]),
+    x = d3.scale.ordinal().rangeRoundBands([0, w],0.3),
     y = d3.scale.linear().range([0, h]),
     z = d3.scale.category20() //d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
     parse = d3.time.format("%Y").parse,
@@ -53,9 +60,9 @@ var partyColors = [];
 
 d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 
-  // Convert the data into layers by party.  
-  var parties = d3.layout.stack().order("default").offset("zero")(
-  		csv.map(function(d) {
+	console.log("csv",csv);
+	
+	var data = csv.map(function(d) {
     		//console.log("data",d);
     		var arr = [];
     		for (year in d) {
@@ -67,21 +74,54 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
         			} else if(year == "color"){
         				partyColors.push(val);
         			} else {
-    					arr.push({x: parse(year), y: +val});
+    					arr.push({x: parse(year), y: +val, y0: 0});
+    					arr.push({x: parse(year)+1, y: +val, y0: 0});
     				}
         		}
     		}
-    		//console.log("arr",arr)
+    		//console.log(d["puolue"],arr)
       		return arr;
     	})
-  );
+
+	console.log("data",data);
+	//return;
+
+  // Convert the data into layers by party.  
+  var parties = d3.layout.stack().offset("zero")(data);
+  //var parties = data;
   
   console.log("parties",parties);
-  console.log("partyColors",partyColors);
+  //console.log("partyColors",partyColors);
 
   // Compute the x-domain (by date) and y-domain (by top).
   x.domain(parties[0].map(function(d) { return d.x; }));
   y.domain([0, d3.max(parties[parties.length - 1], function(d) { return d.y0 + d.y; })]);
+  
+	/*var line = d3.svg.line()
+		.x(function(d,i) { return x(d.x); })
+		.y(function(d) { return -y(d.y0) - y(d.y); })
+		.interpolate("monotone");
+
+	var path = svg.selectAll("path")
+      .data(parties)
+    .enter().append("svg:path")
+      .attr("d", function(d) { return line(d) })
+      .style("stroke", function(d, i) { return d3.rgb(partyColors[i]).darker(); });*/
+
+	var line2 = d3.svg.area()
+		.x(function(d,i) { return x(d.x); })
+		.y0(function(d) { return -y(d.y0); })
+		.y1(function(d) { return -y(d.y0) - y(d.y); })
+		.interpolate("monotone");
+
+	var path = svg.selectAll("path.lower")
+      .data(parties)
+    .enter().append("svg:path")
+      .attr("d", function(d) { return line2(d) })
+      .style("fill", function(d, i) { return d3.rgb(partyColors[i]) })
+      .style("stroke", function(d, i) { return d3.rgb(partyColors[i]) });
+
+return;
 
   // Add a group for each party.
   var party = svg.selectAll("g.party")
@@ -125,7 +165,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .attr("y", 6)
       .attr("text-anchor", "middle")
       .attr("dy", ".71em")
-      .text(format);
+      .text(function(d){console.log(d)}); //format
 
   // Add y-axis rules.
   var rule = svg.selectAll("g.rule")
