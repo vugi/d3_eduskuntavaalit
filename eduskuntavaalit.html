@@ -31,7 +31,7 @@ path.results {
 	stroke: none;
 	stroke-width: 2;
 	fill: none;
-	fill-opacity:0.8;
+	fill-opacity: 0.8;
 }
 
     </style>
@@ -48,6 +48,9 @@ var p = [20, 50, 60, 20],
     z = d3.scale.category20() //d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
     parse = d3.time.format("%Y").parse,
     format = d3.time.format("%Y");
+    
+// Some layout variables
+var padding = 1;
 
 var svg = d3.select("body").append("svg")
     .attr("width", w)
@@ -63,7 +66,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 	console.log("csv",csv);
 	
 	var data = csv.map(function(d) {
-    		//console.log("data",d);
+    		//console.log("csv.map data",d);
     		var arr = [];
     		for (year in d) {
         		if (d.hasOwnProperty(year)){
@@ -87,6 +90,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 	//return;
 
   // Convert the data into layers by party.  
+  /*
   var parties = d3.layout.stack().offset(function(data) {
 	  var j = -1,
 		  m = data[0].length,
@@ -94,8 +98,40 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 	  while (++j < m) y0[j] = 0; //
 	  return y0;
 	})(data);
-  //var parties = data;
+	*/
+	
+  /*
+   * Set the y0 values for every year so that the biggest party is topmost
+   */
+   
+  // Loop through years
+  for(var i=0;i<data[0].length;i++){
   
+  	// Collect the yearly values as a single array
+  	var yearValues = [];
+  	for(var u=0;u<data.length;u++){
+  		yearValues.push(data[u][i]);
+  	}
+  	// Sort the yearly values
+  	yearValues.sort(function(a,b){
+  		return a.y-b.y;
+  	})
+  	//console.log(data[0][i].x,yearValues)
+  	
+  	// Loop again through parties and set y0 value
+  	for(var u=0;u<data.length;u++){
+  		//console.log(i,u,data[u][i].x)
+  		var index = yearValues.indexOf(data[u][i]);
+  		var y0 = 0;
+  		// Calculate the y0 as a sum of lower levels
+  		for(var t=0; t<index; t++){
+  			y0 += yearValues[t].y + padding; // Add also some padding
+  		}
+  		data[u][i].y0 = y0;
+  	}
+  }
+  
+  var parties = data;
   console.log("parties",parties);
   //console.log("partyColors",partyColors);
 
