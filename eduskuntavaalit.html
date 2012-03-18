@@ -22,16 +22,16 @@
 
 svg {
   width: 1200px;
-  height: 500px;
+  height: 530px;
   font: 10px sans-serif;
   /*shape-rendering: crispEdges;*/
 }
 
-path {
+path.results {
 	stroke: none;
 	stroke-width: 2;
 	fill: none;
-	fill-opacity:1;
+	fill-opacity:0.8;
 }
 
     </style>
@@ -40,10 +40,10 @@ path {
   	<h1>Finnish parliament elections 1945 - 2011</h1> 
     <script type="text/javascript">
 
-var p = [20, 50, 30, 20],
+var p = [20, 50, 60, 20],
     w = 1200 - p[1] - p[3],
-    h = 500 - p[0] - p[2],
-    x = d3.scale.ordinal().rangeRoundBands([0, w],0.3),
+    h = 530 - p[0] - p[2],
+    x = d3.scale.ordinal().rangeRoundBands([0, w],0),
     y = d3.scale.linear().range([0, h]),
     z = d3.scale.category20() //d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
     parse = d3.time.format("%Y").parse,
@@ -97,7 +97,29 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   x.domain(parties[0].map(function(d) { return d.x; }));
   y.domain([0, d3.max(parties[parties.length - 1], function(d) { return d.y0 + d.y; })]);
   
-	/*var line = d3.svg.line()
+  
+  // Add a group for each party.
+  var party = svg.selectAll("g.party")
+      .data(parties)
+    .enter().append("g")
+      .attr("class", "party")
+    .on("mouseover", fade(.3))
+    .on("mouseout", fade(1))
+    .on("mousemove", movePartyname())
+      .style("fill", function(d, i) { return partyColors[i]; })
+      .style("stroke", function(d, i) { return d3.rgb(partyColors[i]).darker(); });
+
+  // Add a rect for each date.
+  /*var rect = party.selectAll("rect")
+      .data(Object)
+    .enter().append("rect")
+      .attr("x", function(d) { return x(d.x); })
+      .attr("y", function(d) { return -y(d.y0) - y(d.y); })
+      .attr("height", function(d) { return y(d.y); })
+      .attr("width", x.rangeBand());
+  */
+  
+  	/*var line = d3.svg.line()
 		.x(function(d,i) { return x(d.x); })
 		.y(function(d) { return -y(d.y0) - y(d.y); })
 		.interpolate("monotone");
@@ -111,51 +133,28 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 	var line2 = d3.svg.area()
 		.x(function(d,i) { return x(d.x); })
 		.y0(function(d) { return -y(d.y0); })
-		.y1(function(d) { return -y(d.y0) - y(d.y); })
+		.y1(function(d) { return -y(d.y0) - y(d.y)s; })
 		.interpolate("monotone");
 
-	var path = svg.selectAll("path.lower")
-      .data(parties)
-    .enter().append("svg:path")
-      .attr("d", function(d) { return line2(d) })
+	var path = party.append("svg:path")
+	  .attr("class","results")
+      .attr("d", function(d) { console.log("single path d",d); return line2(d) })
       .style("fill", function(d, i) { return d3.rgb(partyColors[i]) })
       .style("stroke", function(d, i) { return d3.rgb(partyColors[i]) });
-
-return;
-
-  // Add a group for each party.
-  var party = svg.selectAll("g.party")
-      .data(parties)
-    .enter().append("g")
-      .attr("class", "party")
-    .on("mouseover", fade(.3))
-    .on("mouseout", fade(1))
-    .on("mousemove", movePartyname())
-      .style("fill", function(d, i) { return partyColors[i]; })
-      .style("stroke", function(d, i) { return d3.rgb(partyColors[i]).darker(); });
-
-  // Add a rect for each date.
-  var rect = party.selectAll("rect")
-      .data(Object)
-    .enter().append("rect")
-      .attr("x", function(d) { return x(d.x); })
-      .attr("y", function(d) { return -y(d.y0) - y(d.y); })
-      .attr("height", function(d) { return y(d.y); })
-      .attr("width", x.rangeBand());
-      
+  
   // Add value texts (hidden by default)
   var text = party.selectAll("text")
-	  .data(Object)
+	  .data(function(d) { console.log("text d",d); return d; })
    	 .enter().append("text")
       .attr("class", "value")
       .attr("x", function(d) { return x(d.x); })
       .attr("y", function(d) { return -y(d.y0) - y(d.y); })
-      .attr("dx", "1.6em")
-      .attr("dy", "2em")
+      .attr("dx", "0.2em")
+      .attr("dy", "-0.5em")
       .style("stroke", "transparent")
       .style("fill", "black")
       .style("opacity",0)
-      .text(function(d) { return d.y ? d.y + "%" : ""; });
+      .text(function(d,i) { console.log(d,i); return (i % 2 == 0 && d.y) ? Math.round(d.y*10)/10 + "%" : ""; });
 
   // Add a label per date.
   var label = svg.selectAll("text.label")
@@ -165,7 +164,7 @@ return;
       .attr("y", 6)
       .attr("text-anchor", "middle")
       .attr("dy", ".71em")
-      .text(function(d){console.log(d)}); //format
+      .text(function(d,i){console.log("text.label",d,i); return (i % 2 == 0) ? format(d) : "" }); //format
 
   // Add y-axis rules.
   var rule = svg.selectAll("g.rule")
