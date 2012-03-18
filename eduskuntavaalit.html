@@ -87,7 +87,13 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 	//return;
 
   // Convert the data into layers by party.  
-  var parties = d3.layout.stack().offset("zero")(data);
+  var parties = d3.layout.stack().offset(function(data) {
+	  var j = -1,
+		  m = data[0].length,
+		  y0 = [];
+	  while (++j < m) y0[j] = 0; //
+	  return y0;
+	})(data);
   //var parties = data;
   
   console.log("parties",parties);
@@ -146,7 +152,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 	.transition()
 	  .ease("linear")
 	  .duration(300)
-      .delay(function(d, i) { console.log("delay",i); return i * 100; })
+      .delay(function(d, i) { /*console.log("delay",i);*/ return i * 100; })
       .attr("transform", "translate(0,0)")
       .style("opacity", 1);
   
