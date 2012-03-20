@@ -52,7 +52,6 @@ var p = [20, 0, 60, 80],
     h = 530 - p[0] - p[2],
     x = d3.scale.ordinal().rangeRoundBands([0, w],0),
     y = d3.scale.linear().range([0, h/2]),
-    z = d3.scale.category20() //d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
     parse = d3.time.format("%Y").parse,
     format = d3.time.format("%Y");
     
@@ -101,18 +100,6 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
     	})
 
 	console.log("data",data);
-	//return;
-
-  // Convert the data into layers by party.  
-  /*
-  var parties = d3.layout.stack().offset(function(data) {
-	  var j = -1,
-		  m = data[0].length,
-		  y0 = [];
-	  while (++j < m) y0[j] = 0; //
-	  return y0;
-	})(data);
-	*/
 	
   /*
    * Set the y0 values for every year so that the biggest party is topmost
@@ -192,26 +179,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .style("fill", function(d, i) { return partyColors[i]; })
       .style("stroke", function(d, i) { return d3.rgb(partyColors[i]).darker(); });
 
-  // Add a rect for each date.
-  /*var rect = party.selectAll("rect")
-      .data(Object)
-    .enter().append("rect")
-      .attr("x", function(d) { return x(d.x); })
-      .attr("y", function(d) { return -y(d.y0) - y(d.y); })
-      .attr("height", function(d) { return y(d.y); })
-      .attr("width", x.rangeBand());
-  */
-  
-  	/*var line = d3.svg.line()
-		.x(function(d,i) { return x(d.x); })
-		.y(function(d) { return -y(d.y0) - y(d.y); })
-		.interpolate("monotone");
-
-	var path = svg.selectAll("path")
-      .data(parties)
-    .enter().append("svg:path")
-      .attr("d", function(d) { return line(d) })
-      .style("stroke", function(d, i) { return d3.rgb(partyColors[i]).darker(); });*/
+	// Draw the paths
 
 	var line2 = d3.svg.area()
 		.x(function(d,i) { return x(d.x); })
@@ -331,12 +299,6 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
     	
    };
  }
-
-function showPartyname(){
-	return function(g, i) {
-		
-	}
-}
 
 function movePartyname(){
 	return function(g, i) {
