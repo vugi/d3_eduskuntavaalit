@@ -47,7 +47,7 @@ line {
   	<h1>Finnish parliament elections 1945 - 2011</h1> 
     <script type="text/javascript">
 
-var p = [20, 0, 50, 80],
+var p = [20, 0, 50, 100],
     w = 1200 - p[1] - p[3],
     h = 550 - p[0] - p[2],
     x = d3.scale.ordinal().rangeRoundBands([0, w],0),
@@ -108,7 +108,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   // Loop through years
   for(var i=0;i<data[0].length;i++){
   
-  	var goverment = [];
+  	var government = [];
   	var opposition = [];
   	
   	// Loop through parties
@@ -116,7 +116,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   		var item = data[u][i];
   		if(item.gov){
   			//console.log(u,partyNames[u%2 ? u-1 : u])
-  			goverment.push(item);
+  			government.push(item);
   		} else {
   			opposition.push(item);
   		}
@@ -125,7 +125,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   	var comparator = function(a,b){
   		return a.y-b.y;
   	};
-  	goverment.sort(comparator);
+  	government.sort(comparator);
   	opposition.sort(function(a,b){
   		return b.y-a.y;
   	});
@@ -138,10 +138,10 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   		// Calculate the y0 as a sum of lower levels
   		var y0 = 0;
   		
-  		var index = goverment.indexOf(data[u][i]);
+  		var index = government.indexOf(data[u][i]);
   		if (index !== -1){
   			for(var t=0; t<index; t++){
-  				y0 += goverment[t].y + padding;
+  				y0 += government[t].y + padding;
   			}
   			y0 += padding;
   		} else {
@@ -257,19 +257,20 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
  svg.append("line")
  		.attr("y1", -h/2)
  		.attr("y2", h/2+30)
- 		.attr("x1", 6)
- 		.attr("x2", 6)
+ 		.attr("x1", 12)
+ 		.attr("x2", 12)
  		
   svg.append("text")
     	.attr("y", -10)
-    	.attr("x", -75)
+    	.attr("x", -85)
     	.attr("font-size", 15)
     	.style("fill","black")
-    	.text("Goverment")
+    	.text("Government")
+    	.attr("transform", "rotate(0)")
     	
     svg.append("text")
     	.attr("y", 20)
-    	.attr("x", -75)
+    	.attr("x", -85)
     	.attr("font-size", 15)
     	.style("fill","black")
     	.text("Opposition")
