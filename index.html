@@ -16,7 +16,7 @@
     	font-weight: normal;
     	letter-spacing: -1px;
     	text-rendering: optimizelegibility;
-    	padding-left: 20px;
+    	padding-left: 85px;
     	padding-bottom: 20px;
     	margin-bottom: 0;
     }
@@ -253,7 +253,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .data(x.domain())
     .enter().append("text")
       .attr("x", function(d) { return x(d) + x.rangeBand() / 2; })
-      .attr("y", 6)
+      .attr("y", h/2)
       .attr("text-anchor", "middle")
       .attr("dy", ".71em")
       .text(function(d,i){ /*console.log("text.label",d,i);*/ return (i % 2 == 0) ? format(d) : "" });
@@ -288,7 +288,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
     	
  svg.append("line")
  		.attr("y1", -h/2)
- 		.attr("y2", h/2)
+ 		.attr("y2", h/2+10)
  		.attr("x1", 6)
  		.attr("x2", 6)
  		
