@@ -44,19 +44,19 @@ var p = [20, 50, 60, 20],
     w = 1200 - p[1] - p[3],
     h = 530 - p[0] - p[2],
     x = d3.scale.ordinal().rangeRoundBands([0, w],0),
-    y = d3.scale.linear().range([0, h]),
+    y = d3.scale.linear().range([0, h/2]),
     z = d3.scale.category20() //d3.scale.ordinal().range(["crimson", "steelblue", "darkgreen", "red"]), /*lightblue, darkgray*/
     parse = d3.time.format("%Y").parse,
     format = d3.time.format("%Y");
     
 // Some layout variables
-var padding = 1;
+var padding = 2;
 
 var svg = d3.select("body").append("svg")
     .attr("width", w)
     .attr("height", h)
   .append("g")
-    .attr("transform", "translate(" + p[3] + "," + (h + p[0]) + ")");
+    .attr("transform", "translate(" + p[3] + "," + (h/2 + p[0]) + ")");
 
 var partyNames = [];
 var partyColors = [];
@@ -77,8 +77,14 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
         			} else if(year == "color"){
         				partyColors.push(val);
         			} else {
-    					arr.push({x: parse(year), y: +val, y0: 0});
-    					arr.push({x: parse(year)+1, y: +val, y0: 0});
+        				var gov = false;
+        				if (val.charAt(0) === "h"){
+        					console.log("hallitus",d["puolue"]);
+        					val = val.substr(1);
+        					gov = true;
+        				}
+    					arr.push({x: parse(year), y: +val, y0: 0, gov: gov});
+    					arr.push({x: parse(year)+1, y: +val, y0: 0, gov: gov});
     				}
         		}
     		}
@@ -107,26 +113,52 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   // Loop through years
   for(var i=0;i<data[0].length;i++){
   
-  	// Collect the yearly values as a single array
-  	var yearValues = [];
+  	var goverment = [];
+  	var opposition = [];
+  	
+  	// Loop through parties
   	for(var u=0;u<data.length;u++){
-  		yearValues.push(data[u][i]);
+  		var item = data[u][i];
+  		if(item.gov){
+  			//console.log(u,partyNames[u%2 ? u-1 : u])
+  			goverment.push(item);
+  		} else {
+  			opposition.push(item);
+  		}
   	}
   	// Sort the yearly values
-  	yearValues.sort(function(a,b){
+  	var comparator = function(a,b){
   		return a.y-b.y;
-  	})
+  	};
+  	goverment.sort(comparator);
+  	opposition.sort(function(a,b){
+  		return b.y-a.y;
+  	});
   	//console.log(data[0][i].x,yearValues)
   	
   	// Loop again through parties and set y0 value
   	for(var u=0;u<data.length;u++){
   		//console.log(i,u,data[u][i].x)
-  		var index = yearValues.indexOf(data[u][i]);
-  		var y0 = 0;
+  		
   		// Calculate the y0 as a sum of lower levels
-  		for(var t=0; t<index; t++){
-  			y0 += yearValues[t].y + padding; // Add also some padding
-  		}
+  		var y0 = 0;
+  		
+  		var index = goverment.indexOf(data[u][i]);
+  		if (index !== -1){
+  			for(var t=0; t<index; t++){
+  				y0 += goverment[t].y + padding;
+  			}
+  		} else {
+  			index = opposition.indexOf(data[u][i]);
+  			
+  			for(var t=0; t<index; t++){
+  				y0 -= opposition[t].y + padding;
+  				//console.log(y0)
+  			}
+  			y0 -= data[u][i].y + padding*3;
+  			//console.log("opposition",partyNames[u],y0)
+  		}	
+  		
   		data[u][i].y0 = y0;
   	}
   }
@@ -137,7 +169,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 
   // Compute the x-domain (by date) and y-domain (by top).
   x.domain(parties[0].map(function(d) { return d.x; }));
-  y.domain([0, d3.max(parties[parties.length - 1], function(d) { return d.y0 + d.y; })]);
+  y.domain([0, 70]);
   
   
   // Add a group for each party.
