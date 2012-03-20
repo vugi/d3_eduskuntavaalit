@@ -344,7 +344,7 @@ function movePartyname(){
 		var evt = d3.event;
 		//console.log(evt,evt.clientX,evt.x,evt.clientY,evt.y);
 		//console.log(d3.svg.mouse(svg));
-		var transform = "translate(" + (evt.x-70) + "," + (evt.y-h-40) + ")";
+		var transform = "translate(" + (evt.x-p[3]-50) + "," + (evt.y-h/2-70) + ")";
 		//console.log(transform);
 		svg.select("#tooltip")
 			.attr("transform", transform)
