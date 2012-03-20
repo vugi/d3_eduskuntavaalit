@@ -24,7 +24,7 @@
 svg {
 	background-color: white;
   width: 1200px;
-  height: 530px;
+  height: 550px;
   font: 10px sans-serif;
   /*shape-rendering: crispEdges;*/
 }
@@ -47,16 +47,16 @@ line {
   	<h1>Finnish parliament elections 1945 - 2011</h1> 
     <script type="text/javascript">
 
-var p = [20, 0, 60, 80],
+var p = [20, 0, 50, 80],
     w = 1200 - p[1] - p[3],
-    h = 530 - p[0] - p[2],
+    h = 550 - p[0] - p[2],
     x = d3.scale.ordinal().rangeRoundBands([0, w],0),
     y = d3.scale.linear().range([0, h/2]),
     parse = d3.time.format("%Y").parse,
     format = d3.time.format("%Y");
     
 // Some layout variables
-var padding = 2,
+var padding = 3,
 	centerPadding = 8;
 
 var svg = d3.select("body").append("svg")
@@ -221,7 +221,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .data(x.domain())
     .enter().append("text")
       .attr("x", function(d) { return x(d) + x.rangeBand() / 2; })
-      .attr("y", h/2)
+      .attr("y", h/2 + 20)
       .attr("text-anchor", "middle")
       .attr("dy", ".71em")
       .text(function(d,i){ /*console.log("text.label",d,i);*/ return (i % 2 == 0) ? format(d) : "" });
@@ -256,7 +256,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
     	
  svg.append("line")
  		.attr("y1", -h/2)
- 		.attr("y2", h/2+10)
+ 		.attr("y2", h/2+30)
  		.attr("x1", 6)
  		.attr("x2", 6)
  		
