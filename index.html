@@ -12,15 +12,17 @@
     h1 {
     	color: #333;
     	font-family: 'Helvetica Neue';
-    	font-size: 1.5em;
+    	font-size: 1.8em;
+    	font-weight: normal;
     	letter-spacing: -1px;
     	text-rendering: optimizelegibility;
     	padding-left: 20px;
-    	padding-bottom: 0;
+    	padding-bottom: 20px;
     	margin-bottom: 0;
     }
 
 svg {
+	background-color: white;
   width: 1200px;
   height: 530px;
   font: 10px sans-serif;
@@ -50,7 +52,8 @@ var p = [20, 50, 60, 20],
     format = d3.time.format("%Y");
     
 // Some layout variables
-var padding = 2;
+var padding = 2,
+	centerPadding = 8;
 
 var svg = d3.select("body").append("svg")
     .attr("width", w)
@@ -155,7 +158,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   				y0 -= opposition[t].y + padding;
   				//console.log(y0)
   			}
-  			y0 -= data[u][i].y + padding*3;
+  			y0 -= data[u][i].y + centerPadding;
   			//console.log("opposition",partyNames[u],y0)
   		}	
   		
@@ -169,7 +172,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
 
   // Compute the x-domain (by date) and y-domain (by top).
   x.domain(parties[0].map(function(d) { return d.x; }));
-  y.domain([0, 70]);
+  y.domain([0, 100]);
   
   
   // Add a group for each party.
