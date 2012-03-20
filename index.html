@@ -36,13 +36,18 @@ path.results {
 	fill-opacity: 0.8;
 }
 
+line {
+	stroke: #333;
+	stroke-width: 2;
+}
+
     </style>
   </head>
   <body>
   	<h1>Finnish parliament elections 1945 - 2011</h1> 
     <script type="text/javascript">
 
-var p = [20, 50, 60, 20],
+var p = [20, 0, 60, 80],
     w = 1200 - p[1] - p[3],
     h = 530 - p[0] - p[2],
     x = d3.scale.ordinal().rangeRoundBands([0, w],0),
@@ -151,6 +156,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   			for(var t=0; t<index; t++){
   				y0 += goverment[t].y + padding;
   			}
+  			y0 += padding;
   		} else {
   			index = opposition.indexOf(data[u][i]);
   			
@@ -158,7 +164,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
   				y0 -= opposition[t].y + padding;
   				//console.log(y0)
   			}
-  			y0 -= data[u][i].y + centerPadding;
+  			y0 -= data[u][i].y + padding;
   			//console.log("opposition",partyNames[u],y0)
   		}	
   		
@@ -242,6 +248,7 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .text(function(d,i) { /*console.log(d,i);*/ return (i % 2 == 0 && d.y) ? Math.round(d.y*10)/10 + "%" : ""; });
 
   // Add a label per date.
+  
   var label = svg.selectAll("text.label")
       .data(x.domain())
     .enter().append("text")
@@ -251,24 +258,6 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
       .attr("dy", ".71em")
       .text(function(d,i){ /*console.log("text.label",d,i);*/ return (i % 2 == 0) ? format(d) : "" });
 
-  // Add y-axis rules.
-  var rule = svg.selectAll("g.rule")
-      .data(y.ticks(5))
-      .enter().append("g")
-      .attr("class", "rule")
-      .attr("transform", function(d) { return "translate(0," + -y(d) + ")"; });
-
-	/*
-	rule.append("line")
-      .attr("x2", w)
-      .style("stroke", function(d) { return d ? "#fff" : "#000"; })
-      .style("stroke-opacity", function(d) { return d ? .7 : null; });
-	*/
-
-  rule.append("text")
-      .attr("x", w + 6)
-      .attr("dy", ".35em")
-      .text(d3.format(",d"));
       
   var tooltip = svg.append("g")
   	.attr("id","tooltip")
@@ -292,6 +281,30 @@ d3.csv("eduskuntavaalit_1945-1995-transposed.csv", function(csv) {
     	.attr("font-size", 15)
     	.style("fill","white")
     	.text("")
+    	
+ svg.append("line")
+ 		.attr("x1", -p[3])
+ 		.attr("x2", w+p[3]);
+    	
+ svg.append("line")
+ 		.attr("y1", -h/2)
+ 		.attr("y2", h/2)
+ 		.attr("x1", 6)
+ 		.attr("x2", 6)
+ 		
+  svg.append("text")
+    	.attr("y", -10)
+    	.attr("x", -75)
+    	.attr("font-size", 15)
+    	.style("fill","black")
+    	.text("Goverment")
+    	
+    svg.append("text")
+    	.attr("y", 20)
+    	.attr("x", -75)
+    	.attr("font-size", 15)
+    	.style("fill","black")
+    	.text("Opposition")
 });
 
 /** Returns an event handler for fading a given chord group. */
